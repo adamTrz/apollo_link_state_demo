@@ -66,6 +66,7 @@ class App extends React.Component<Props, State> {
               <List>
                 {beers.map(item => (
                   <ListItem
+                    key={item.id}
                     expanded={expanded}
                     cart={cart}
                     item={item}

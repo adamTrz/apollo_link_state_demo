@@ -30,7 +30,7 @@ const ListItem = ({
   expanded,
   cart,
 }: Props) => (
-  <React.Fragment key={item.id}>
+  <React.Fragment>
     <ExpansionPanel
       expanded={expanded === item.id}
       onChange={handlePanelChange(item.id)}
