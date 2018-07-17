@@ -8,7 +8,12 @@ import Toolbar from '@material-ui/core/Toolbar';
 import AppBar from '@material-ui/core/AppBar';
 import Typography from '@material-ui/core/Typography';
 
-const Bar = ({ cart, classes }) => {
+type Props = {
+  cart: { [key: string]: string },
+  classes: *,
+};
+
+const Bar = ({ cart, classes }: Props) => {
   const cartCount = Object.keys(cart).length;
   console.log('cart', cart);
   return (

@@ -12,6 +12,7 @@ export type Beer = {
   description: string,
   id: string,
   tagline: string,
+  image_url: string,
 };
 
 type State = {

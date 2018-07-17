@@ -11,6 +11,17 @@ import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
 import ListItemText from '@material-ui/core/ListItemText';
 
+import type { Beer } from './App';
+
+type Props = {
+  classes: *,
+  item: Beer,
+  handlePanelChange: (panel: string) => (event: *, expanded: boolean) => void,
+  handleInputChange: (value: string, id: string) => void,
+  expanded: ?string | ?boolean,
+  cart: { [key: string]: string },
+};
+
 const ListItem = ({
   classes,
   item,
@@ -18,7 +29,7 @@ const ListItem = ({
   handleInputChange,
   expanded,
   cart,
-}) => (
+}: Props) => (
   <React.Fragment key={item.id}>
     <ExpansionPanel
       expanded={expanded === item.id}
