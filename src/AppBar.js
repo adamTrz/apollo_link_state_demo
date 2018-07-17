@@ -15,7 +15,6 @@ type Props = {
 
 const Bar = ({ cart, classes }: Props) => {
   const cartCount = Object.keys(cart).length;
-  console.log('cart', cart);
   return (
     <AppBar position="sticky">
       <Toolbar>
