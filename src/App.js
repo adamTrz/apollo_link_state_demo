@@ -3,9 +3,12 @@ import * as React from 'react';
 import List from '@material-ui/core/List';
 import Grid from '@material-ui/core/Grid';
 import { withStyles } from '@material-ui/core/styles';
+import { Query } from 'react-apollo';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 import AppBar from './AppBar';
 import ListItem from './ListItem';
+import { BEERS_QUERY } from './graphqj';
 
 export type Beer = {
   name: string,
@@ -17,9 +20,9 @@ export type Beer = {
 
 type State = {
   cart: { [key: string]: string },
-  beers: Array<Beer>,
   expanded: ?string | boolean,
 };
+
 type Props = {
   classes: *,
 };
@@ -27,18 +30,7 @@ type Props = {
 class App extends React.Component<Props, State> {
   state = {
     cart: {},
-    beers: [],
     expanded: null,
-  };
-
-  componentDidMount() {
-    this.fetchBeers();
-  }
-
-  fetchBeers = async () => {
-    const resp = await fetch('https://api.punkapi.com/v2/beers');
-    const beers = await resp.json();
-    this.setState({ beers });
   };
 
   handleInputChange = (value: string, id: string) => {
@@ -55,30 +47,43 @@ class App extends React.Component<Props, State> {
 
   render() {
     const { classes } = this.props;
-    const { expanded, cart, beers } = this.state;
+    const { expanded, cart } = this.state;
 
     return (
-      <React.Fragment>
-        <AppBar cart={cart} />
-        <div className={classes.root}>
-          <Grid item>
-            <div className={classes.demo}>
-              <List>
-                {beers.map(item => (
-                  <ListItem
-                    key={item.id}
-                    expanded={expanded}
-                    cart={cart}
-                    item={item}
-                    handlePanelChange={this.handlePanelChange}
-                    handleInputChange={this.handleInputChange}
-                  />
-                ))}
-              </List>
-            </div>
-          </Grid>
-        </div>
-      </React.Fragment>
+      <Query query={BEERS_QUERY}>
+        {({ data, loading }) => {
+          return (
+            <React.Fragment>
+              <AppBar cart={cart} />
+              <div className={classes.root}>
+                <Grid item>
+                  <div className={classes.demo}>
+                    {loading ? (
+                      <CircularProgress
+                        className={classes.progress}
+                        size={50}
+                      />
+                    ) : (
+                      <List>
+                        {data.beers.map(item => (
+                          <ListItem
+                            key={item.id}
+                            expanded={expanded}
+                            cart={cart}
+                            item={item}
+                            handlePanelChange={this.handlePanelChange}
+                            handleInputChange={this.handleInputChange}
+                          />
+                        ))}
+                      </List>
+                    )}
+                  </div>
+                </Grid>
+              </div>
+            </React.Fragment>
+          );
+        }}
+      </Query>
     );
   }
 }
@@ -92,6 +97,11 @@ const styles = theme => ({
   },
   demo: {
     backgroundColor: theme.palette.background.paper,
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  progress: {
+    marginTop: 30,
   },
   textField: {
     marginTop: 0,

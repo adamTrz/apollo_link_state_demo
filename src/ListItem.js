@@ -24,32 +24,29 @@ type Props = {
 
 const ListItem = ({
   classes,
-  item,
+  item: { id, name, description, image_url, tagline },
   handlePanelChange,
   handleInputChange,
   expanded,
   cart,
 }: Props) => (
   <React.Fragment>
-    <ExpansionPanel
-      expanded={expanded === item.id}
-      onChange={handlePanelChange(item.id)}
-    >
+    <ExpansionPanel expanded={expanded === id} onChange={handlePanelChange(id)}>
       <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
-        <img alt={item.name} src={item.image_url} className={classes.avatar} />
-        <ListItemText primary={item.name} secondary={item.tagline} />
+        <img alt={name} src={image_url} className={classes.avatar} />
+        <ListItemText primary={name} secondary={tagline} />
       </ExpansionPanelSummary>
       <ExpansionPanelDetails>
         <Grid>
           <Typography variant="caption" gutterBottom>
-            {item.description}
+            {description}
           </Typography>
           <TextField
             id="order"
             label="Your Order"
             className={classes.textField}
-            value={cart[item.id]}
-            onChange={event => handleInputChange(event.target.value, item.id)}
+            value={cart[id]}
+            onChange={event => handleInputChange(event.target.value, id)}
             margin="normal"
           />
         </Grid>

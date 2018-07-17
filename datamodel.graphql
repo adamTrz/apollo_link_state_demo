@@ -1,0 +1,12 @@
+type User {
+  id: ID! @unique
+  name: String!
+}
+
+type Beer {
+  id: ID! @unique
+  name: String!
+  description: String
+  tagline: String
+  image_url: String
+}

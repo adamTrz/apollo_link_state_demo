@@ -1,0 +1,2 @@
+endpoint: https://eu1.prisma.sh/adam-trzcinski-eb3612/todrink-app/dev
+datamodel: datamodel.graphql
