@@ -19,7 +19,7 @@ const Bar = ({ cart, classes }: Props) => {
     <AppBar position="sticky">
       <Toolbar>
         <Typography variant="title" color="inherit" className={classes.flex}>
-          Photos
+          Beers
         </Typography>
         <Badge
           className={classes.margin}
