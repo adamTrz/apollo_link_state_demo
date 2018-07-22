@@ -52,10 +52,8 @@ class ListItem extends React.Component<Props, State> {
     if (!this.state.value) return;
     const value = parseInt(this.state.value, 10);
     if (this.props.value) {
-      console.log('update!');
       this.props.handleUpdate(this.props.item.id, value);
     } else {
-      console.log('add!');
       this.props.handleAdd(this.props.item.id, value);
     }
   };

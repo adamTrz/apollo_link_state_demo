@@ -12,14 +12,27 @@ export const BEERS_QUERY = gql`
   }
 `;
 
-export const ADD_BEER_MUTATION = gql`
-  mutation createBeer($data: BeerCreateInput!) {
-    createBeer(data: $data) {
-      name
+export const CART_QUERY = gql`
+  query GetCart {
+    cart @client {
       id
-      description
-      tagline
-      image_url
+      value
     }
+  }
+`;
+
+export const ADD_ITEM_TO_CART = gql`
+  mutation addItemToCart($id: ID!, $value: number!) {
+    addItemToCart(id: $id, value: $value) @client
+  }
+`;
+export const REMOVE_ITEM_FROM_CART = gql`
+  mutation removeItemFromCart($id: ID!) {
+    removeItemFromCart(id: $id) @client
+  }
+`;
+export const UPDATE_CART_ITEM = gql`
+  mutation updateCartItem($id: ID!, $value: number!) {
+    updateCartItem(id: $id, value: $value) @client
   }
 `;

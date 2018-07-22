@@ -3,16 +3,20 @@ import * as React from 'react';
 import List from '@material-ui/core/List';
 import Grid from '@material-ui/core/Grid';
 import { withStyles } from '@material-ui/core/styles';
-import { Query, compose } from 'react-apollo';
+import { Query, Mutation } from 'react-apollo';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import { connect } from 'react-redux';
 
 import AppBar from './AppBar';
 import ListItem from './ListItem';
-import { BEERS_QUERY } from './graphql/queries';
-import * as Actions from './redux/actions';
+import {
+  BEERS_QUERY,
+  CART_QUERY,
+  ADD_ITEM_TO_CART,
+  REMOVE_ITEM_FROM_CART,
+  UPDATE_CART_ITEM,
+} from './graphql/queries';
 
-import type { Cart, CartAction } from './types';
+import type { Cart } from './types';
 
 type State = {
   expanded: ?string | boolean,
@@ -21,7 +25,6 @@ type State = {
 type Props = {
   classes: *,
   cart: Cart,
-  dispatch: (action: CartAction) => void,
 };
 
 class App extends React.Component<Props, State> {
@@ -35,62 +38,82 @@ class App extends React.Component<Props, State> {
     });
   };
 
-  handleAdd = (id: string, value: number) => {
-    this.props.dispatch(Actions.addItemToCart(id, value));
-  };
-
-  handleUpdate = (id: string, value: number) => {
-    this.props.dispatch(Actions.updateCartItem(id, value));
-  };
-
-  handleRemove = (id: string) => {
-    this.props.dispatch(Actions.removeItemFromCart(id));
-  };
-
   render() {
-    const { classes, cart } = this.props;
+    const { classes } = this.props;
     const { expanded } = this.state;
     return (
-      <Query query={BEERS_QUERY}>
-        {({ data, loading }) => {
-          return (
-            <React.Fragment>
-              <AppBar />
-              <div className={classes.root}>
-                <Grid item>
-                  <div className={classes.demo}>
-                    {loading ? (
-                      <CircularProgress
-                        className={classes.progress}
-                        size={50}
-                      />
-                    ) : (
-                      <List>
-                        {data.beers.map(item => {
-                          const cartItem = cart.find(i => i.id === item.id);
-                          const value = cartItem ? cartItem.value : '';
-                          return (
-                            <ListItem
-                              key={item.id}
-                              expanded={expanded}
-                              item={item}
-                              handlePanelChange={this.handlePanelChange}
-                              handleAdd={this.handleAdd}
-                              handleRemove={this.handleRemove}
-                              handleUpdate={this.handleUpdate}
-                              value={value}
-                            />
-                          );
-                        })}
-                      </List>
+      <Mutation mutation={UPDATE_CART_ITEM}>
+        {updateCartItem => (
+          <Mutation mutation={REMOVE_ITEM_FROM_CART}>
+            {removeItemFromCart => (
+              <Mutation mutation={ADD_ITEM_TO_CART}>
+                {addItemToCart => (
+                  <Query query={CART_QUERY}>
+                    {({ data: { cart } }) => (
+                      <Query query={BEERS_QUERY}>
+                        {({ data, loading }) => (
+                          <React.Fragment>
+                            <AppBar />
+                            <div className={classes.root}>
+                              <Grid item>
+                                <div className={classes.demo}>
+                                  {loading ? (
+                                    <CircularProgress
+                                      className={classes.progress}
+                                      size={50}
+                                    />
+                                  ) : (
+                                    <List>
+                                      {data.beers.map(item => {
+                                        const cartItem = cart.find(
+                                          i => i.id === item.id,
+                                        );
+                                        const value = cartItem
+                                          ? cartItem.value
+                                          : '';
+                                        return (
+                                          <ListItem
+                                            key={item.id}
+                                            expanded={expanded}
+                                            item={item}
+                                            handlePanelChange={
+                                              this.handlePanelChange
+                                            }
+                                            handleAdd={(id, value) =>
+                                              addItemToCart({
+                                                variables: { id, value },
+                                              })
+                                            }
+                                            handleRemove={id =>
+                                              removeItemFromCart({
+                                                variables: { id },
+                                              })
+                                            }
+                                            handleUpdate={(id, value) => {
+                                              updateCartItem({
+                                                variables: { id, value },
+                                              });
+                                            }}
+                                            value={value}
+                                          />
+                                        );
+                                      })}
+                                    </List>
+                                  )}
+                                </div>
+                              </Grid>
+                            </div>
+                          </React.Fragment>
+                        )}
+                      </Query>
                     )}
-                  </div>
-                </Grid>
-              </div>
-            </React.Fragment>
-          );
-        }}
-      </Query>
+                  </Query>
+                )}
+              </Mutation>
+            )}
+          </Mutation>
+        )}
+      </Mutation>
     );
   }
 }
@@ -120,14 +143,4 @@ const styles = theme => ({
   },
 });
 
-const mapStateToProps = state => ({
-  cart: state.cart,
-});
-
-export default compose(
-  connect(
-    mapStateToProps,
-    null,
-  ),
-  withStyles(styles),
-)(App);
+export default withStyles(styles)(App);

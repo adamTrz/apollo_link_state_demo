@@ -7,8 +7,8 @@ import Badge from '@material-ui/core/Badge';
 import Toolbar from '@material-ui/core/Toolbar';
 import AppBar from '@material-ui/core/AppBar';
 import Typography from '@material-ui/core/Typography';
-import { connect } from 'react-redux';
-import { compose } from 'react-apollo';
+import { compose, Query } from 'react-apollo';
+import { CART_QUERY } from './graphql/queries';
 
 import type { Cart } from './types';
 
@@ -17,27 +17,28 @@ type Props = {
   classes: *,
 };
 
-const Bar = ({ cart, classes }: Props) => {
-  const cartCount = cart.length;
-  return (
-    <AppBar position="sticky">
-      <Toolbar>
-        <Typography variant="title" color="inherit" className={classes.flex}>
-          Beers
-        </Typography>
-        <Badge
-          className={classes.margin}
-          badgeContent={cartCount}
-          color="secondary"
-        >
-          <IconButton color="inherit" className={classes.menuButton}>
-            <ShoppingCart />
-          </IconButton>
-        </Badge>
-      </Toolbar>
-    </AppBar>
-  );
-};
+const Bar = ({ classes }: Props) => (
+  <Query query={CART_QUERY}>
+    {({ data: { cart } }) => (
+      <AppBar position="sticky">
+        <Toolbar>
+          <Typography variant="title" color="inherit" className={classes.flex}>
+            Beers
+          </Typography>
+          <Badge
+            className={classes.margin}
+            badgeContent={cart.length}
+            color="secondary"
+          >
+            <IconButton color="inherit" className={classes.menuButton}>
+              <ShoppingCart />
+            </IconButton>
+          </Badge>
+        </Toolbar>
+      </AppBar>
+    )}
+  </Query>
+);
 
 const styles = theme => ({
   flex: {
@@ -52,14 +53,4 @@ const styles = theme => ({
   },
 });
 
-const mapStateToProps = state => ({
-  cart: state.cart,
-});
-
-export default compose(
-  connect(
-    mapStateToProps,
-    null,
-  ),
-  withStyles(styles),
-)(Bar);
+export default compose(withStyles(styles))(Bar);
