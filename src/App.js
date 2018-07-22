@@ -3,7 +3,7 @@ import * as React from 'react';
 import List from '@material-ui/core/List';
 import Grid from '@material-ui/core/Grid';
 import { withStyles } from '@material-ui/core/styles';
-import { Query, Mutation } from 'react-apollo';
+import { graphql, compose } from 'react-apollo';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
 import AppBar from './AppBar';
@@ -16,7 +16,7 @@ import {
   UPDATE_CART_ITEM,
 } from './graphql/queries';
 
-import type { Cart } from './types';
+import type { Cart, Beer } from './types';
 
 type State = {
   expanded: ?string | boolean,
@@ -25,6 +25,11 @@ type State = {
 type Props = {
   classes: *,
   cart: Cart,
+  beers: Array<Beer>,
+  loading: boolean,
+  addItemToCart: (id: string, value: number) => Promise<*>,
+  updateCartItem: (id: string, value: number) => Promise<*>,
+  removeItemFromCart: (id: string) => Promise<*>,
 };
 
 class App extends React.Component<Props, State> {
@@ -38,82 +43,53 @@ class App extends React.Component<Props, State> {
     });
   };
 
+  handleAdd = (id: string, value: number) => {
+    this.props.addItemToCart(id, value);
+  };
+
+  handleUpdate = (id: string, value: number) => {
+    this.props.updateCartItem(id, value);
+  };
+
+  handleRemove = (id: string) => {
+    this.props.removeItemFromCart(id);
+  };
+
   render() {
-    const { classes } = this.props;
+    const { classes, beers = [], loading, cart } = this.props;
     const { expanded } = this.state;
     return (
-      <Mutation mutation={UPDATE_CART_ITEM}>
-        {updateCartItem => (
-          <Mutation mutation={REMOVE_ITEM_FROM_CART}>
-            {removeItemFromCart => (
-              <Mutation mutation={ADD_ITEM_TO_CART}>
-                {addItemToCart => (
-                  <Query query={CART_QUERY}>
-                    {({ data: { cart } }) => (
-                      <Query query={BEERS_QUERY}>
-                        {({ data, loading }) => (
-                          <React.Fragment>
-                            <AppBar />
-                            <div className={classes.root}>
-                              <Grid item>
-                                <div className={classes.demo}>
-                                  {loading ? (
-                                    <CircularProgress
-                                      className={classes.progress}
-                                      size={50}
-                                    />
-                                  ) : (
-                                    <List>
-                                      {data.beers.map(item => {
-                                        const cartItem = cart.find(
-                                          i => i.id === item.id,
-                                        );
-                                        const value = cartItem
-                                          ? cartItem.value
-                                          : '';
-                                        return (
-                                          <ListItem
-                                            key={item.id}
-                                            expanded={expanded}
-                                            item={item}
-                                            handlePanelChange={
-                                              this.handlePanelChange
-                                            }
-                                            handleAdd={(id, value) =>
-                                              addItemToCart({
-                                                variables: { id, value },
-                                              })
-                                            }
-                                            handleRemove={id =>
-                                              removeItemFromCart({
-                                                variables: { id },
-                                              })
-                                            }
-                                            handleUpdate={(id, value) => {
-                                              updateCartItem({
-                                                variables: { id, value },
-                                              });
-                                            }}
-                                            value={value}
-                                          />
-                                        );
-                                      })}
-                                    </List>
-                                  )}
-                                </div>
-                              </Grid>
-                            </div>
-                          </React.Fragment>
-                        )}
-                      </Query>
-                    )}
-                  </Query>
-                )}
-              </Mutation>
-            )}
-          </Mutation>
-        )}
-      </Mutation>
+      <React.Fragment>
+        <AppBar />
+        <div className={classes.root}>
+          <Grid item>
+            <div className={classes.demo}>
+              {loading ? (
+                <CircularProgress className={classes.progress} size={50} />
+              ) : (
+                <List>
+                  {beers.map(item => {
+                    const cartItem = cart.find(i => i.id === item.id);
+                    const value = cartItem ? cartItem.value : '';
+                    return (
+                      <ListItem
+                        key={item.id}
+                        expanded={expanded}
+                        item={item}
+                        handlePanelChange={this.handlePanelChange}
+                        handleAdd={this.handleAdd}
+                        handleRemove={this.handleRemove}
+                        handleUpdate={this.handleUpdate}
+                        value={value}
+                      />
+                    );
+                  })}
+                </List>
+              )}
+            </div>
+          </Grid>
+        </div>
+      </React.Fragment>
     );
   }
 }
@@ -143,4 +119,41 @@ const styles = theme => ({
   },
 });
 
-export default withStyles(styles)(App);
+export default compose(
+  withStyles(styles),
+  graphql(CART_QUERY, {
+    props: ({ data, loading }) => ({
+      cart: data.cart,
+    }),
+  }),
+  graphql(BEERS_QUERY, {
+    props: ({ data, loading }) => ({
+      beers: data.beers,
+      loading,
+    }),
+  }),
+  graphql(UPDATE_CART_ITEM, {
+    props: ({ ownProps, mutate }) => ({
+      updateCartItem: (id, value) =>
+        mutate({
+          variables: { id, value },
+        }),
+    }),
+  }),
+  graphql(ADD_ITEM_TO_CART, {
+    props: ({ ownProps, mutate }) => ({
+      addItemToCart: (id, value) =>
+        mutate({
+          variables: { id, value },
+        }),
+    }),
+  }),
+  graphql(REMOVE_ITEM_FROM_CART, {
+    props: ({ ownProps, mutate }) => ({
+      removeItemFromCart: id =>
+        mutate({
+          variables: { id },
+        }),
+    }),
+  }),
+)(App);
