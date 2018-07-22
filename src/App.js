@@ -52,44 +52,39 @@ class App extends React.Component<Props, State> {
     const { expanded } = this.state;
     return (
       <Query query={BEERS_QUERY}>
-        {({ data, loading }) => {
-          return (
-            <React.Fragment>
-              <AppBar />
-              <div className={classes.root}>
-                <Grid item>
-                  <div className={classes.demo}>
-                    {loading ? (
-                      <CircularProgress
-                        className={classes.progress}
-                        size={50}
-                      />
-                    ) : (
-                      <List>
-                        {data.beers.map(item => {
-                          const cartItem = cart.find(i => i.id === item.id);
-                          const value = cartItem ? cartItem.value : '';
-                          return (
-                            <ListItem
-                              key={item.id}
-                              expanded={expanded}
-                              item={item}
-                              handlePanelChange={this.handlePanelChange}
-                              handleAdd={this.handleAdd}
-                              handleRemove={this.handleRemove}
-                              handleUpdate={this.handleUpdate}
-                              value={value}
-                            />
-                          );
-                        })}
-                      </List>
-                    )}
-                  </div>
-                </Grid>
-              </div>
-            </React.Fragment>
-          );
-        }}
+        {({ data, loading }) => (
+          <React.Fragment>
+            <AppBar />
+            <div className={classes.root}>
+              <Grid item>
+                <div className={classes.demo}>
+                  {loading ? (
+                    <CircularProgress className={classes.progress} size={50} />
+                  ) : (
+                    <List>
+                      {data.beers.map(item => {
+                        const cartItem = cart.find(i => i.id === item.id);
+                        const value = cartItem ? cartItem.value : '';
+                        return (
+                          <ListItem
+                            key={item.id}
+                            expanded={expanded}
+                            item={item}
+                            handlePanelChange={this.handlePanelChange}
+                            handleAdd={this.handleAdd}
+                            handleRemove={this.handleRemove}
+                            handleUpdate={this.handleUpdate}
+                            value={value}
+                          />
+                        );
+                      })}
+                    </List>
+                  )}
+                </div>
+              </Grid>
+            </div>
+          </React.Fragment>
+        )}
       </Query>
     );
   }
