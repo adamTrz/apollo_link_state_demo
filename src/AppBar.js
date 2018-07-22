@@ -7,14 +7,18 @@ import Badge from '@material-ui/core/Badge';
 import Toolbar from '@material-ui/core/Toolbar';
 import AppBar from '@material-ui/core/AppBar';
 import Typography from '@material-ui/core/Typography';
+import { connect } from 'react-redux';
+import { compose } from 'react-apollo';
+
+import type { Cart } from './types';
 
 type Props = {
-  cart: { [key: string]: string },
+  cart: Cart,
   classes: *,
 };
 
 const Bar = ({ cart, classes }: Props) => {
-  const cartCount = Object.keys(cart).length;
+  const cartCount = cart.length;
   return (
     <AppBar position="sticky">
       <Toolbar>
@@ -48,4 +52,14 @@ const styles = theme => ({
   },
 });
 
-export default withStyles(styles)(Bar);
+const mapStateToProps = state => ({
+  cart: state.cart,
+});
+
+export default compose(
+  connect(
+    mapStateToProps,
+    null,
+  ),
+  withStyles(styles),
+)(Bar);

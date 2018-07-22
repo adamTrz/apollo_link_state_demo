@@ -3,40 +3,30 @@ import * as React from 'react';
 import List from '@material-ui/core/List';
 import Grid from '@material-ui/core/Grid';
 import { withStyles } from '@material-ui/core/styles';
-import { Query } from 'react-apollo';
+import { Query, compose } from 'react-apollo';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import { connect } from 'react-redux';
 
 import AppBar from './AppBar';
 import ListItem from './ListItem';
-import { BEERS_QUERY } from './graphqj';
+import { BEERS_QUERY } from './graphql/queries';
+import * as Actions from './redux/actions';
 
-export type Beer = {
-  name: string,
-  description: string,
-  id: string,
-  tagline: string,
-  image_url: string,
-};
+import type { Cart, CartAction } from './types';
 
 type State = {
-  cart: { [key: string]: string },
   expanded: ?string | boolean,
 };
 
 type Props = {
   classes: *,
+  cart: Cart,
+  dispatch: (action: CartAction) => void,
 };
 
 class App extends React.Component<Props, State> {
   state = {
-    cart: {},
     expanded: null,
-  };
-
-  handleInputChange = (value: string, id: string) => {
-    this.setState(state => ({
-      cart: { ...state.cart, [id]: value },
-    }));
   };
 
   handlePanelChange = (panel: string) => (event, expanded: boolean) => {
@@ -45,16 +35,27 @@ class App extends React.Component<Props, State> {
     });
   };
 
-  render() {
-    const { classes } = this.props;
-    const { expanded, cart } = this.state;
+  handleAdd = (id: string, value: number) => {
+    this.props.dispatch(Actions.addItemToCart(id, value));
+  };
 
+  handleUpdate = (id: string, value: number) => {
+    this.props.dispatch(Actions.updateCartItem(id, value));
+  };
+
+  handleRemove = (id: string) => {
+    this.props.dispatch(Actions.removeItemFromCart(id));
+  };
+
+  render() {
+    const { classes, cart } = this.props;
+    const { expanded } = this.state;
     return (
       <Query query={BEERS_QUERY}>
         {({ data, loading }) => {
           return (
             <React.Fragment>
-              <AppBar cart={cart} />
+              <AppBar />
               <div className={classes.root}>
                 <Grid item>
                   <div className={classes.demo}>
@@ -65,16 +66,22 @@ class App extends React.Component<Props, State> {
                       />
                     ) : (
                       <List>
-                        {data.beers.map(item => (
-                          <ListItem
-                            key={item.id}
-                            expanded={expanded}
-                            cart={cart}
-                            item={item}
-                            handlePanelChange={this.handlePanelChange}
-                            handleInputChange={this.handleInputChange}
-                          />
-                        ))}
+                        {data.beers.map(item => {
+                          const cartItem = cart.find(i => i.id === item.id);
+                          const value = cartItem ? cartItem.value : '';
+                          return (
+                            <ListItem
+                              key={item.id}
+                              expanded={expanded}
+                              item={item}
+                              handlePanelChange={this.handlePanelChange}
+                              handleAdd={this.handleAdd}
+                              handleRemove={this.handleRemove}
+                              handleUpdate={this.handleUpdate}
+                              value={value}
+                            />
+                          );
+                        })}
                       </List>
                     )}
                   </div>
@@ -113,4 +120,14 @@ const styles = theme => ({
   },
 });
 
-export default withStyles(styles)(App);
+const mapStateToProps = state => ({
+  cart: state.cart,
+});
+
+export default compose(
+  connect(
+    mapStateToProps,
+    null,
+  ),
+  withStyles(styles),
+)(App);
